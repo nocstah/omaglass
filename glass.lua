@@ -8,7 +8,7 @@
 --
 -- What it does, on every theme:
 --   * terminals are glass panes (hyprglass_enabled) that sample the
---     wallpaper only (hyprglass_background, patched hyprglass) and are held
+--     wallpaper only (hyprglass x-ray, tag hyprglass_xray; PR #74) and are held
 --     compositor-opaque so the glass shows through the terminal's OWN alpha
 --   * chilled windows (Omachill's chillmode tag) are glass too
 --   * fullscreen windows never are
@@ -99,11 +99,11 @@ if opt("terminals", true) then
   -- rules are not.
   rule({ match = { class = TERMINALS }, tag = "-default-opacity", opacity = "1 override 1 override" })
   rule({ match = { class = TERMINALS }, tag = "+hyprglass_enabled" })
-  if background then rule({ match = { class = TERMINALS }, tag = "+hyprglass_background" }) end
+  if background then rule({ match = { class = TERMINALS }, tag = "+hyprglass_xray" }) end
 end
 if opt("chilled", true) then
   rule({ match = { tag = "chillmode" }, tag = "+hyprglass_enabled" })
-  if background then rule({ match = { tag = "chillmode" }, tag = "+hyprglass_background" }) end
+  if background then rule({ match = { tag = "chillmode" }, tag = "+hyprglass_xray" }) end
 end
 rule({ match = { fullscreen = true }, tag = "+hyprglass_disabled" })
 
@@ -256,7 +256,7 @@ local function set_look(w, name, quiet)
   local prev, next = LOOK[state] or LOOK.glass, LOOK[name] or LOOK.glass
   if state ~= "glass" then tag(w, "-glass_" .. state) end
   for i = 1, #PRESETS do tag(w, "-hyprglass_preset_" .. PRESETS[i]) end
-  tag(w, "-hyprglass_background")
+  tag(w, "-hyprglass_xray")
   if next.glass == "off" then
     -- hyprglass withdraws its noblur when disabled; give it a frame before
     -- we set the property ourselves, or its withdrawal clobbers ours.
@@ -270,7 +270,7 @@ local function set_look(w, name, quiet)
     tag(w, "-hyprglass_disabled")
     if next.glass ~= "on" then tag(w, "+hyprglass_preset_" .. next.glass) end
   end
-  if next.bg then tag(w, "+hyprglass_background") end
+  if next.bg then tag(w, "+hyprglass_xray") end
   foot_alpha(w, next.alpha)
   if name ~= "glass" then tag(w, "+glass_" .. name) end
   if not quiet then notify(name .. " — " .. tostring(w.title or w.class or ""):sub(1, 40)) end

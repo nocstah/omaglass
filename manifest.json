@@ -51,7 +51,7 @@
         "key": "background",
         "type": "boolean",
         "label": "Sample the wallpaper only",
-        "description": "Glass is made from the wallpaper, never from windows beneath (needs the patched hyprglass).",
+        "description": "Glass is made from the wallpaper, never from windows beneath (hyprglass x-ray: the nocstah fork today, upstream once hyprnux/hyprglass#74 lands).",
         "defaultValue": true
       },
       {

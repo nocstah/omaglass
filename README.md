@@ -35,7 +35,7 @@ the plugin removes the loader again.
   frost, held compositor-opaque so the glass shows through the terminal's own
   background alpha. The plugin sets that alpha (per light/dark theme) in
   foot's config and repaints open windows; a theme shipping its own alpha wins.
-- **Wallpaper only**: the glass is sampled from a snapshot of the desktop
+- **Wallpaper only** (hyprglass x-ray): the glass is sampled from a snapshot of the desktop
   taken before any window is drawn, so windows underneath never show through.
 - **Shadows**, three modes. *Contact* (default): one soft shadow system on
   every theme — the focused window gets a plain shadow, an unfocused window
