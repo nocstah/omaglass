@@ -48,8 +48,9 @@ the plugin removes the loader again.
 - **The bar and menus** get the same frost.
 - **Looks per window, or for all**: click the bar widget for a dropdown that
   lists every look with a one-line description and marks the current one.
-  "Window" applies to the focused window; "All" applies to every glass window
-  and makes it the default for windows opened from then on. The same looks
+  "All" (the default) applies to every glass window and makes it the default
+  for windows opened from then on; "Window" applies to the focused window
+  only. The All choice is remembered per theme and comes back with the theme. The same looks
   are on two keys:
 
   | key | cycle |

@@ -18,8 +18,8 @@ Panel {
   property var hostWidget: null
   readonly property var barIdentity: hostWidget || root
 
-  // "window" | "all"
-  property string scope: "window"
+  // "all" | "window" — All first: the look is usually a desktop-wide choice.
+  property string scope: "all"
   readonly property string currentLook: hostWidget ? String(hostWidget.look || "") : ""
   readonly property string currentTitle: hostWidget ? String(hostWidget.title || "") : ""
   readonly property string defaultLook: hostWidget ? String(hostWidget.defaultLook || "glass") : "glass"

@@ -44,21 +44,43 @@ local KEY_LOOKS  = opt("key_looks", "SUPER + CTRL + ALT + G")
 
 local function q(s) return "'" .. tostring(s):gsub("'", "'\\''") .. "'" end
 
--- The default look for windows opened from now on ("All windows" in the
--- dropdown). Kept in a file so it survives reloads; the bar reads it too.
+-- The default look, per theme: what "All windows" chose while this theme was
+-- active. Kept under ~/.local/state/omaglass/looks/<theme>, mirrored to
+-- default-look (the bar reads that), and re-applied to every glass window
+-- when the theme changes — each theme gets its own choice back.
 local STATE_DIR    = os.getenv("HOME") .. "/.local/state/omaglass"
+local LOOKS_DIR    = STATE_DIR .. "/looks"
 local DEFAULT_FILE = STATE_DIR .. "/default-look"
-local function read_default()
-  local f = io.open(DEFAULT_FILE)
-  if not f then return "glass" end
+local APPLIED_FILE = STATE_DIR .. "/applied-theme"
+local function read_line(path)
+  local f = io.open(path)
+  if not f then return nil end
   local v = (f:read("*l") or ""):gsub("%s+", "")
   f:close()
-  return v ~= "" and v or "glass"
+  return v ~= "" and v or nil
+end
+local function write_line(path, value)
+  local f = io.open(path, "w")
+  if f then f:write(value, "\n") f:close() end
+end
+local function theme_name()
+  local n = read_line(os.getenv("HOME") .. "/.local/state/omarchy/current/theme.name")
+  return (n or "default"):gsub("[^%w%-%._]", "_")
+end
+local function read_default()
+  return read_line(LOOKS_DIR .. "/" .. theme_name()) or "glass"
 end
 local function write_default(name)
-  os.execute("mkdir -p " .. q(STATE_DIR))
-  local f = io.open(DEFAULT_FILE, "w")
-  if f then f:write(name, "\n") f:close() end
+  os.execute("mkdir -p " .. q(LOOKS_DIR))
+  write_line(LOOKS_DIR .. "/" .. theme_name(), name)
+  write_line(DEFAULT_FILE, name)
+end
+-- First run after the per-theme change: carry the old single default over to
+-- the theme active at that moment — once; other themes start at "glass".
+if not read_line(LOOKS_DIR .. "/.seeded") then
+  os.execute("mkdir -p " .. q(LOOKS_DIR))
+  if read_line(DEFAULT_FILE) then write_default(read_line(DEFAULT_FILE)) end
+  write_line(LOOKS_DIR .. "/.seeded", "1")
 end
 
 -- Re-entrant: tear down the previous registration first.
@@ -302,6 +324,49 @@ local function set_all(name)
   return n
 end
 
+-- Put the theme's remembered look on every glass window that is not in it.
+local function apply_theme_default()
+  local d = read_default()
+  local wins = hl.get_windows()
+  if type(wins) ~= "table" then return 0 end
+  local n = 0
+  for i = 1, #wins do
+    if is_glass(wins[i]) and look_of(wins[i]) ~= d then
+      pcall(set_look, wins[i], d, true)
+      n = n + 1
+    end
+  end
+  write_line(STATE_DIR .. "/applied-at", os.date("%Y-%m-%d %H:%M:%S") .. " " .. theme_name() .. " " .. d .. " " .. n)
+  return n
+end
+
+-- A theme change (Omarchy reloads after it, which re-runs this file) puts
+-- the theme's remembered look on every glass window; a plain reload of the
+-- same theme leaves per-window choices alone. Run once the reload is done —
+-- config.reloaded fires after the parse this file is part of; the timer is
+-- the fallback for the injected (no reload) path.
+do
+  local theme = theme_name()
+  write_line(DEFAULT_FILE, read_default()) -- keep the bar's mirror current
+  if read_line(APPLIED_FILE) ~= theme then
+    os.execute("mkdir -p " .. q(STATE_DIR))
+    write_line(APPLIED_FILE, theme)
+    local done = false
+    local function once()
+      if done then return end
+      done = true
+      apply_theme_default()
+    end
+    local sub
+    sub = hl.on("config.reloaded", function()
+      once()
+      if sub then pcall(function() sub:remove() end) end
+    end)
+    live.subs[#live.subs + 1] = sub
+    hl.timer(function() once() end, { timeout = 600, type = "oneshot" })
+  end
+end
+
 -- New glass windows start in the default look. A short delay lets the
 -- map-time rules land first (is_glass needs the tags or the class).
 live.subs[#live.subs + 1] = hl.on("window.open", function(w)
@@ -342,5 +407,6 @@ _G.omaglass = {
   cycle_looks = function(selector) return cycle(LOOK_CYCLE, selector) end,
   set_all = set_all,
   default = read_default,
+  apply_theme_default = apply_theme_default,
   unload = unload,
 }
