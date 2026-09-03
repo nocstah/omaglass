@@ -31,6 +31,7 @@ Panel {
   ]
   readonly property var looks: [
     { name: "clear", label: "Clear", text: "The wallpaper sharp through the pane, no frost. Windows beneath never show." },
+    { name: "pure", label: "Pure", text: "Super clear: the wallpaper exactly as it is behind the text. No frost, no tint, no terminal background." },
     { name: "sheer", label: "Sheer", text: "The lightest frost; the wallpaper stays recognisable." },
     { name: "native", label: "Native", text: "Hyprland's own blur instead of the glass — this one shows what is beneath." },
     { name: "contrast", label: "Contrast", text: "hyprglass's high-contrast preset: stronger tint, refraction." },

@@ -56,11 +56,14 @@ the plugin removes the loader again.
   | key | cycle |
   | --- | --- |
   | `SUPER + CTRL + G` | glass → milky → solid |
-  | `SUPER + CTRL + ALT + G` | glass → clear → sheer → native → contrast → block |
+  | `SUPER + CTRL + ALT + G` | glass → clear → pure → sheer → native → contrast → block |
 
   milky and solid trade transparency for readability; clear is the wallpaper
-  sharp through the pane; sheer the lightest frost; native Hyprland's own blur;
-  contrast and block are hyprglass's built-in presets.
+  sharp through the pane, with the terminal's background laid over it at
+  `clearAlpha`; pure is super clear: the wallpaper exactly as it is behind the
+  text, no frost, no tint and no terminal background at all; sheer the lightest
+  frost; native Hyprland's own blur; contrast and block are hyprglass's
+  built-in presets.
 
 Every option — which windows, the frost, the shadows, the alphas, the keys — is
 a widget setting stored in `~/.config/omarchy/shell.json`. The shadows mode

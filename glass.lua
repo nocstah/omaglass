@@ -195,6 +195,20 @@ if HAVE_PLUGIN then
     preset("sheer", 0.5, 1)                        -- the lightest frost
     preset("crystal", 0.0, 1)                      -- no blur: a copy of the wallpaper
   end
+  -- "pure": the super-clear look's preset, on every theme — the wallpaper
+  -- exactly as it is: no blur, no effects and none of the theme's material
+  -- (no dim, boost, tint or desaturation), so with x-ray the pane is a
+  -- pixel copy of what is behind the window.
+  do
+    local flat = { brightness = 1.0, contrast = 1.0, saturation = 1.0, vibrancy = 0.0, vibrancy_darkness = 0.0,
+                   adaptive_boost = 0.0, adaptive_dim = 0.0, tint_color = 0x00000000 }
+    local pure = { glass_opacity = 1.0, blur_strength = 0.0, blur_iterations = 1,
+                   refraction_strength = 0.0, chromatic_aberration = 0.0, fresnel_strength = 0.0,
+                   specular_strength = 0.0, lens_distortion = 0.0, edge_thickness = 0.0,
+                   light = flat, dark = flat }
+    for k, v in pairs(flat) do pure[k] = v end
+    hg.preset("pure", pure)
+  end
 end
 
 -- ---- terminal alpha (foot.ini) --------------------------------------------
@@ -218,14 +232,15 @@ local LOOK = {
   milky    = { glass = "on",            blur = 0, alpha = MILKY,   bg = true },
   solid    = { glass = "off",           blur = 0, alpha = 100,     bg = false },
   clear    = { glass = "crystal",       blur = 0, alpha = CLEAR,   bg = true },
+  pure     = { glass = "pure",          blur = 0, alpha = 0,       bg = true }, -- super clear: wallpaper and text, nothing else
   native   = { glass = "off",           blur = 0, alpha = "reset", bg = false },
   sheer    = { glass = "sheer",         blur = 0, alpha = "reset", bg = true },
   contrast = { glass = "high_contrast", blur = 0, alpha = "reset", bg = true },
   block    = { glass = "glass",         blur = 0, alpha = "reset", bg = true },
 }
 local READ_CYCLE = { "milky", "solid" }
-local LOOK_CYCLE = { "clear", "sheer", "native", "contrast", "block" }
-local PRESETS    = { "sheer", "high_contrast", "glass", "crystal" }
+local LOOK_CYCLE = { "clear", "pure", "sheer", "native", "contrast", "block" }
+local PRESETS    = { "clear", "sheer", "high_contrast", "glass", "crystal", "pure" }
 
 local function tags_of(w)
   local t = w and w.tags
