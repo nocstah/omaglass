@@ -93,18 +93,18 @@ local SHADOWS        = tostring(opt("shadows", "contact"))
 local SHADOW_RANGE   = math.max(1, tonumber(opt("shadow_range", 28)) or 28)
 local SHADOW_PERCENT = math.max(0, math.min(100, tonumber(opt("shadow_strength", 28)) or 28))
 if SHADOWS == "contact" then
-  -- One shadow system on every theme: the focused window gets a plain soft
-  -- shadow of the same range as the contact shadow at twice its strength,
-  -- inactive windows none (the contact shadow says when one covers another).
-  -- Themes and look engines that set a big glow are overridden here; pick
-  -- "theme" to keep theirs.
+  -- One shadow system on every theme: the focused window gets a GLOW — wide
+  -- (2.5x the contact range), soft falloff, moderate strength (1.5x the
+  -- contact shadow's, capped) — inactive windows none (the contact shadow
+  -- says when one covers another). Themes and look engines that set their
+  -- own are overridden here; pick "theme" to keep theirs.
   hl.config({ decoration = { shadow = {
     enabled = true,
-    range = SHADOW_RANGE,
-    render_power = 3,
-    offset = "0 0",
-    scale = 1.0,
-    color = string.format("rgba(000000%02x)", math.floor(math.min(100, SHADOW_PERCENT * 2) * 255 / 100 + 0.5)),
+    range = math.floor(SHADOW_RANGE * 2.5 + 0.5),
+    render_power = 2,
+    offset = "0 6",
+    scale = 0.98,
+    color = string.format("rgba(000000%02x)", math.floor(math.min(85, SHADOW_PERCENT * 1.5) * 255 / 100 + 0.5)),
     color_inactive = "rgba(00000000)",
   } } })
 elseif SHADOWS == "flat" then
@@ -140,21 +140,27 @@ if HAVE_PLUGIN then
   })
 
   if not _G.glass_theme_owned then
-    local neutral = { brightness = 1.0, contrast = 1.0, saturation = 1.0, vibrancy = 0.0, adaptive_boost = 0.05, adaptive_dim = 0.05 }
+    -- Light themes: neutral, the frost is the wallpaper as it is. Dark
+    -- themes: smoked glass — the sampled wallpaper is dimmed and slightly
+    -- desaturated, bright areas dimmed further (adaptive_dim), and a black
+    -- tint laid over it, so a dark translucent terminal reads as glass
+    -- instead of a muddy grey over a bright wallpaper.
+    local light = { brightness = 1.0, contrast = 1.0, saturation = 1.0, vibrancy = 0.0, adaptive_boost = 0.05, adaptive_dim = 0.05 }
+    local dark  = { brightness = 0.88, contrast = 1.0, saturation = 0.9, vibrancy = 0.05, adaptive_boost = 0.0, adaptive_dim = 0.18, tint_color = 0x00000038 }
     local function preset(name, blur_strength, blur_iterations)
       hg.preset(name, {
         glass_opacity = 1.0, blur_strength = blur_strength, blur_iterations = blur_iterations,
         refraction_strength = 0.0, chromatic_aberration = 0.0, fresnel_strength = 0.0,
         specular_strength = 0.0, lens_distortion = 0.0, edge_thickness = 0.0,
-        light = neutral, dark = neutral,
+        light = light, dark = dark,
       })
     end
     hg.config({
       default_theme = theme_mode(),
       default_preset = "clear",
       tint_color = 0x00000000,
-      light = neutral,
-      dark = neutral,
+      light = light,
+      dark = dark,
       layers = { enabled = opt("layers", true) and true or false },
     })
     if opt("layers", true) then
