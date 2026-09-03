@@ -97,13 +97,13 @@
           }
         ],
         "defaultValue": "contact",
-        "description": "Contact: the focused window keeps the theme's shadow, an unfocused window casts one only where it lies over another window. Theme: Hyprland's shadows exactly as the theme sets them, no contact shadow. Flat: no shadows at all."
+        "description": "Contact: one soft shadow system on every theme — the focused window gets a plain shadow of the contact shadow's range at twice its strength, an unfocused window casts one only where it lies over another window, a lone one none. Theme: Hyprland's shadows exactly as the theme sets them, no contact shadow. Flat: no shadows at all."
       },
       {
         "key": "shadowRange",
         "type": "integer",
         "label": "Shadow range",
-        "description": "How far the contact shadow reaches, in pixels.",
+        "description": "How far the shadows reach, in pixels (the focused window's and the contact shadow).",
         "min": 4,
         "max": 80,
         "step": 1,
@@ -113,7 +113,7 @@
         "key": "shadowStrength",
         "type": "integer",
         "label": "Shadow strength",
-        "description": "Opacity of the contact shadow, percent.",
+        "description": "Opacity of the contact shadow, percent; the focused window's shadow is twice this.",
         "min": 5,
         "max": 100,
         "step": 1,

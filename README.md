@@ -37,10 +37,11 @@ the plugin removes the loader again.
   foot's config and repaints open windows; a theme shipping its own alpha wins.
 - **Wallpaper only**: the glass is sampled from a snapshot of the desktop
   taken before any window is drawn, so windows underneath never show through.
-- **Shadows**, three modes. *Contact* (default): an unfocused window that lies
-  over another window casts a slight shadow there, cut at the underlying
-  window's outline, so the part resting on the desktop casts nothing; a lone
-  inactive window casts none; the focused window keeps the theme's shadow.
+- **Shadows**, three modes. *Contact* (default): one soft shadow system on
+  every theme — the focused window gets a plain shadow, an unfocused window
+  that lies over another window casts a lighter one there, cut at the
+  underlying window's outline, so the part resting on the desktop casts
+  nothing, and a lone inactive window casts none.
   *Theme*: Hyprland's shadows exactly as the theme sets them, no contact
   shadow. *Flat*: no shadows at all.
 - **Chilled windows** (Omachill) are glass too; fullscreen windows never are.

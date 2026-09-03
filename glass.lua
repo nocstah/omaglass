@@ -89,9 +89,24 @@ rule({ match = { fullscreen = true }, tag = "+hyprglass_disabled" })
 -- shadow, an unfocused one casts the contact shadow only where it lies over
 -- another window; "theme" — Hyprland's shadows as the theme sets them, no
 -- contact shadow; "flat" — none at all.
-local SHADOWS = tostring(opt("shadows", "contact"))
+local SHADOWS        = tostring(opt("shadows", "contact"))
+local SHADOW_RANGE   = math.max(1, tonumber(opt("shadow_range", 28)) or 28)
+local SHADOW_PERCENT = math.max(0, math.min(100, tonumber(opt("shadow_strength", 28)) or 28))
 if SHADOWS == "contact" then
-  hl.config({ decoration = { shadow = { color_inactive = "rgba(00000000)" } } })
+  -- One shadow system on every theme: the focused window gets a plain soft
+  -- shadow of the same range as the contact shadow at twice its strength,
+  -- inactive windows none (the contact shadow says when one covers another).
+  -- Themes and look engines that set a big glow are overridden here; pick
+  -- "theme" to keep theirs.
+  hl.config({ decoration = { shadow = {
+    enabled = true,
+    range = SHADOW_RANGE,
+    render_power = 3,
+    offset = "0 0",
+    scale = 1.0,
+    color = string.format("rgba(000000%02x)", math.floor(math.min(100, SHADOW_PERCENT * 2) * 255 / 100 + 0.5)),
+    color_inactive = "rgba(00000000)",
+  } } })
 elseif SHADOWS == "flat" then
   hl.config({ decoration = { shadow = { enabled = false } } })
 end
@@ -112,8 +127,8 @@ end
 local HAVE_PLUGIN = hl.plugin and hl.plugin.hyprglass and true or false
 if HAVE_PLUGIN then
   local hg = hl.plugin.hyprglass
-  local shadow = SHADOWS == "contact" and (tonumber(opt("shadow_range", 28)) or 28) or 0
-  local strength = math.max(0, math.min(100, tonumber(opt("shadow_strength", 28)) or 28))
+  local shadow   = SHADOWS == "contact" and SHADOW_RANGE or 0
+  local strength = SHADOW_PERCENT
   hg.config({
     enabled = false, -- whitelist: the rules above opt windows in
     manage_window_blur = true,
