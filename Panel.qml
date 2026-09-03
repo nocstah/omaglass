@@ -37,6 +37,15 @@ Panel {
     { name: "block", label: "Block", text: "hyprglass's glass-block preset: lensing and chromatic aberration." },
   ]
 
+  // Widget settings have no editor in the shell (the schema is CLI-only:
+  // `omarchy bar set io.github.nocstah.omaglass <key> <value>`), so the ones
+  // worth reaching for live here.
+  readonly property string shadowsMode: settings && settings.shadows ? String(settings.shadows) : "contact"
+  function setOption(key, value) {
+    if (!root.bar) return
+    root.bar.run("omarchy bar set io.github.nocstah.omaglass " + key + " " + Util.shellQuote(String(value)))
+  }
+
   function apply(name) {
     if (!root.bar) return
     const call = root.scope === "all" ? "omaglass.set_all(" + JSON.stringify(name) + ")" : "omaglass.set(" + JSON.stringify(name) + ")"
@@ -168,6 +177,59 @@ Panel {
                 }
               }
             }
+          }
+        }
+
+        PanelSeparator { width: parent.width }
+
+        // ---- settings worth reaching for
+        Column {
+          width: parent.width
+          spacing: Style.space(6)
+          Item {
+            width: parent.width
+            height: Math.max(shadowsLabel.height, shadowsGroup.height)
+            Column {
+              id: shadowsLabel
+              anchors.left: parent.left
+              anchors.verticalCenter: parent.verticalCenter
+              spacing: Style.space(2)
+              Text {
+                text: "Shadows"
+                color: Color.popups.text
+                font.family: Style.font.family
+                font.pixelSize: Style.font.body
+              }
+              Text {
+                text: root.shadowsMode === "flat" ? "None at all"
+                    : root.shadowsMode === "theme" ? "The theme's own, no contact shadow"
+                    : "Theme's on the focused window, contact shadow where a pane covers another"
+                color: Color.popups.text
+                opacity: 0.6
+                font.family: Style.font.family
+                font.pixelSize: Style.font.caption
+                width: Math.max(80, column.width - shadowsGroup.width - Style.space(12))
+                wrapMode: Text.WordWrap
+              }
+            }
+            ButtonGroup {
+              id: shadowsGroup
+              anchors.right: parent.right
+              anchors.verticalCenter: parent.verticalCenter
+              options: ["Contact", "Theme", "Flat"]
+              value: root.shadowsMode === "flat" ? "Flat" : root.shadowsMode === "theme" ? "Theme" : "Contact"
+              focusable: false
+              onChanged: function(v) { root.setOption("shadows", v.toLowerCase()) }
+            }
+          }
+          Text {
+            text: "More settings: omarchy bar set io.github.nocstah.omaglass <key> <value> — frost, alphas, keys, which windows"
+            color: Color.popups.text
+            opacity: 0.45
+            width: parent.width
+            wrapMode: Text.WordWrap
+            font.family: Style.font.family
+            font.pixelSize: Style.font.caption
           }
         }
       }

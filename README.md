@@ -60,8 +60,19 @@ the plugin removes the loader again.
   sharp through the pane; sheer the lightest frost; native Hyprland's own blur;
   contrast and block are hyprglass's built-in presets.
 
-Every option — which windows, the frost, the shadow, the alphas, the keys — is
-a setting in the bar widget, stored in `~/.config/omarchy/shell.json`.
+Every option — which windows, the frost, the shadows, the alphas, the keys — is
+a widget setting stored in `~/.config/omarchy/shell.json`. The shadows mode
+is switchable from the dropdown; Omarchy has no editor for the others yet, so
+they are set from the command line, for example:
+
+```bash
+omarchy bar set io.github.nocstah.omaglass shadows flat      # contact | theme | flat
+omarchy bar set io.github.nocstah.omaglass frost 12          # lighter default frost
+omarchy bar set io.github.nocstah.omaglass alphaLight 60     # terminal alpha on light themes
+omarchy bar set io.github.nocstah.omaglass background false  # sample the live frame again
+```
+
+The keys are the ones in `manifest.json`.
 
 ## Themes
 
