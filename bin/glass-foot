@@ -1,0 +1,66 @@
+#!/bin/bash
+# glass-foot — foot's background alpha, live and in its config. Used by the
+# Omaglass engine (glass.lua); the plugin's only shell helper.
+#
+#   glass-foot alpha <foot pid> <percent|reset>
+#       repaint the running foot's background at that alpha via OSC 11 in
+#       foot's percent form ("[65]#RRGGBB", foot-ctlseqs(7)), or reset it to
+#       the configured colour and alpha (OSC 111). Written to the pty of each
+#       child of the foot process.
+#   glass-foot apply <light%> <dark%>
+#       set the alpha lines of [colors-dark]/[colors-light] in
+#       ~/.config/foot/foot.ini for new windows (a theme shipping its own
+#       alpha in its foot.ini wins; 0 leaves that section alone), and retint
+#       the windows already open at the current mode's alpha.
+set -u
+STATE="$HOME/.local/state/omarchy"
+FOOT_INI="$HOME/.config/foot/foot.ini"
+
+theme_bg() { # RRGGBB of the terminal background for the current mode
+  local mode=$1 bg
+  bg=$(sed -n "/^\[colors-$mode\]/,/^\[/s/^background=\([0-9A-Fa-f]\{6\}\).*/\1/p" "$STATE/current/theme/foot.ini" 2>/dev/null | head -1)
+  [[ -n $bg ]] || bg=$(omarchy-theme-color --file "$STATE/current/theme/colors.toml" background 2>/dev/null)
+  printf '%s' "${bg#\#}"
+}
+theme_mode() {
+  local m; m=$(sed -n 's/^mode[[:space:]]*=[[:space:]]*"\([^"]*\)".*/\1/p' "$STATE/current/theme/colors.toml" 2>/dev/null)
+  [[ $m == light ]] && echo light || echo dark
+}
+pty_write() { # $1 = foot pid, $2 = bytes
+  local child tty
+  for child in $(pgrep -P "$1"); do
+    tty=$(readlink "/proc/$child/fd/1" 2>/dev/null) || continue
+    [[ $tty == /dev/pts/* ]] && printf '%s' "$2" >"$tty"
+  done
+}
+
+case ${1:-} in
+  alpha)
+    pid=${2:-}; value=${3:-reset}
+    [[ -n $pid ]] || exit 1
+    if [[ $value == reset ]]; then
+      pty_write "$pid" $'\033]111\007'
+    else
+      pty_write "$pid" "$(printf '\033]11;[%d]#%s\007' "$value" "$(theme_bg "$(theme_mode)")")"
+    fi
+    ;;
+  apply)
+    light=${2:-0}; dark=${3:-0}
+    [[ -f $FOOT_INI ]] || exit 0
+    theme_alpha=$(sed -n '/^\[colors-dark\]/,/^\[/s/^alpha=\([0-9.]*\).*/\1/p' "$STATE/current/theme/foot.ini" 2>/dev/null | head -1)
+    if [[ -z $theme_alpha ]]; then
+      (( dark > 0 ))  && sed -i "/^\[colors-dark\]/,/^\[/s/^alpha=.*/alpha=$(awk -v a="$dark" 'BEGIN{printf "%.2f", a/100}')/" "$FOOT_INI"
+      (( light > 0 )) && sed -i "/^\[colors-light\]/,\$s/^alpha=.*/alpha=$(awk -v a="$light" 'BEGIN{printf "%.2f", a/100}')/" "$FOOT_INI"
+    fi
+    # Windows already open: the config alpha is baked in at startup, so
+    # repaint them at the mode's alpha now.
+    mode=$(theme_mode)
+    pct=$(sed -n "/^\[colors-$mode\]/,/^\[/s/^alpha=\([0-9.]*\).*/\1/p" "$FOOT_INI" | head -1)
+    [[ -n $pct ]] || exit 0
+    pct=$(awk -v a="$pct" 'BEGIN{printf "%d", a*100}')
+    bg=$(theme_bg "$mode")
+    for pid in $(pgrep -x foot); do pty_write "$pid" "$(printf '\033]11;[%d]#%s\007' "$pct" "$bg")"; done
+    ;;
+  *)
+    echo "usage: glass-foot alpha <pid> <percent|reset> | apply <light%> <dark%>" >&2; exit 2 ;;
+esac
