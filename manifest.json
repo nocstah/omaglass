@@ -6,7 +6,10 @@
   "author": "Ronny Iversen",
   "license": "MIT",
   "description": "Glass terminals on every theme: frosted panes that sample the wallpaper only, a contact shadow where a pane lies over another window, and per-window looks you can cycle from the bar or a key.",
-  "kinds": ["service", "bar-widget"],
+  "kinds": [
+    "service",
+    "bar-widget"
+  ],
   "entryPoints": {
     "service": "Service.qml",
     "barWidget": "BarWidget.qml"
@@ -23,11 +26,9 @@
       "chilled": true,
       "layers": true,
       "frost": 30,
-      "shadow": true,
       "shadowRange": 28,
       "shadowStrength": 28,
       "shadowClip": true,
-      "inactiveShadowOff": true,
       "alphaLight": 72,
       "alphaDark": 62,
       "milkyAlpha": 65,
@@ -35,27 +36,164 @@
       "keyReadability": "SUPER + CTRL + G",
       "keyLooks": "SUPER + CTRL + ALT + G",
       "notify": true,
-      "hideWhenIdle": false
+      "hideWhenIdle": false,
+      "shadows": "contact"
     },
     "schema": [
-      { "key": "terminals", "type": "boolean", "label": "Terminals are glass", "description": "foot, ghostty, alacritty and kitty windows become glass panes (the pane shows through the terminal's own alpha).", "defaultValue": true },
-      { "key": "background", "type": "boolean", "label": "Sample the wallpaper only", "description": "Glass is made from the wallpaper, never from windows beneath (needs the patched hyprglass).", "defaultValue": true },
-      { "key": "chilled", "type": "boolean", "label": "Chilled windows are glass", "description": "Windows floated by Omachill get the glass too.", "defaultValue": true },
-      { "key": "layers", "type": "boolean", "label": "Glass on the bar and menus", "description": "The shell's bar, menus, OSD and notifications get the frost.", "defaultValue": true },
-      { "key": "frost", "type": "integer", "label": "Frost", "description": "Blur strength of the default glass. 30 hides everything behind the pane; 1 keeps the wallpaper recognisable.", "min": 0, "max": 40, "step": 1, "defaultValue": 30 },
-      { "key": "shadow", "type": "boolean", "label": "Contact shadow", "description": "An unfocused window lying over another window gets a slight shadow (needs the patched hyprglass).", "defaultValue": true },
-      { "key": "shadowRange", "type": "integer", "label": "Shadow range", "description": "How far the contact shadow reaches, in pixels.", "min": 4, "max": 80, "step": 1, "defaultValue": 28 },
-      { "key": "shadowStrength", "type": "integer", "label": "Shadow strength", "description": "Opacity of the contact shadow, percent.", "min": 5, "max": 100, "step": 1, "defaultValue": 28 },
-      { "key": "shadowClip", "type": "boolean", "label": "Shadow only where it lies over a window", "description": "On: the shadow fades out at the underlying window's outline and the part of the pane resting on the wallpaper casts nothing. Off: a full ring whenever the pane overlaps anything.", "defaultValue": true },
-      { "key": "inactiveShadowOff", "type": "boolean", "label": "No shadow on inactive windows", "description": "Hyprland's own inactive-window shadow is switched off, so a lone inactive window casts nothing; the focused window keeps the theme's shadow.", "defaultValue": true },
-      { "key": "alphaLight", "type": "integer", "label": "Terminal alpha, light themes (%)", "description": "The terminal's own background alpha on light themes; the frost only reads below about 70. 0 leaves foot.ini alone. A theme that ships its own alpha wins.", "min": 0, "max": 100, "step": 1, "defaultValue": 72 },
-      { "key": "alphaDark", "type": "integer", "label": "Terminal alpha, dark themes (%)", "description": "Same for dark themes.", "min": 0, "max": 100, "step": 1, "defaultValue": 62 },
-      { "key": "milkyAlpha", "type": "integer", "label": "Milky look alpha (%)", "description": "Terminal alpha in the milky look: frost still visible, text on a lighter ground.", "min": 30, "max": 95, "step": 1, "defaultValue": 65 },
-      { "key": "clearAlpha", "type": "integer", "label": "Clear look alpha (%)", "description": "Terminal alpha in the clear look: sharp wallpaper through the pane.", "min": 20, "max": 90, "step": 1, "defaultValue": 45 },
-      { "key": "keyReadability", "type": "string", "label": "Key: readability", "description": "Cycles glass → milky → solid for the focused window (empty = no key).", "defaultValue": "SUPER + CTRL + G" },
-      { "key": "keyLooks", "type": "string", "label": "Key: looks", "description": "Cycles clear → sheer → native → contrast → block for the focused window (empty = no key).", "defaultValue": "SUPER + CTRL + ALT + G" },
-      { "key": "notify", "type": "boolean", "label": "Notify on change", "description": "Show a notification naming the look and the window.", "defaultValue": true },
-      { "key": "hideWhenIdle", "type": "boolean", "label": "Hide widget on the default look", "description": "Only show the bar icon while the focused window is in a non-default look.", "defaultValue": false }
+      {
+        "key": "terminals",
+        "type": "boolean",
+        "label": "Terminals are glass",
+        "description": "foot, ghostty, alacritty and kitty windows become glass panes (the pane shows through the terminal's own alpha).",
+        "defaultValue": true
+      },
+      {
+        "key": "background",
+        "type": "boolean",
+        "label": "Sample the wallpaper only",
+        "description": "Glass is made from the wallpaper, never from windows beneath (needs the patched hyprglass).",
+        "defaultValue": true
+      },
+      {
+        "key": "chilled",
+        "type": "boolean",
+        "label": "Chilled windows are glass",
+        "description": "Windows floated by Omachill get the glass too.",
+        "defaultValue": true
+      },
+      {
+        "key": "layers",
+        "type": "boolean",
+        "label": "Glass on the bar and menus",
+        "description": "The shell's bar, menus, OSD and notifications get the frost.",
+        "defaultValue": true
+      },
+      {
+        "key": "frost",
+        "type": "integer",
+        "label": "Frost",
+        "description": "Blur strength of the default glass. 30 hides everything behind the pane; 1 keeps the wallpaper recognisable.",
+        "min": 0,
+        "max": 40,
+        "step": 1,
+        "defaultValue": 30
+      },
+      {
+        "key": "shadows",
+        "type": "enum",
+        "label": "Shadows",
+        "options": [
+          {
+            "value": "contact",
+            "label": "Contact"
+          },
+          {
+            "value": "theme",
+            "label": "Theme"
+          },
+          {
+            "value": "flat",
+            "label": "Flat"
+          }
+        ],
+        "defaultValue": "contact",
+        "description": "Contact: the focused window keeps the theme's shadow, an unfocused window casts one only where it lies over another window. Theme: Hyprland's shadows exactly as the theme sets them, no contact shadow. Flat: no shadows at all."
+      },
+      {
+        "key": "shadowRange",
+        "type": "integer",
+        "label": "Shadow range",
+        "description": "How far the contact shadow reaches, in pixels.",
+        "min": 4,
+        "max": 80,
+        "step": 1,
+        "defaultValue": 28
+      },
+      {
+        "key": "shadowStrength",
+        "type": "integer",
+        "label": "Shadow strength",
+        "description": "Opacity of the contact shadow, percent.",
+        "min": 5,
+        "max": 100,
+        "step": 1,
+        "defaultValue": 28
+      },
+      {
+        "key": "shadowClip",
+        "type": "boolean",
+        "label": "Shadow only where it lies over a window",
+        "description": "On: the shadow fades out at the underlying window's outline and the part of the pane resting on the wallpaper casts nothing. Off: a full ring whenever the pane overlaps anything.",
+        "defaultValue": true
+      },
+      {
+        "key": "alphaLight",
+        "type": "integer",
+        "label": "Terminal alpha, light themes (%)",
+        "description": "The terminal's own background alpha on light themes; the frost only reads below about 70. 0 leaves foot.ini alone. A theme that ships its own alpha wins.",
+        "min": 0,
+        "max": 100,
+        "step": 1,
+        "defaultValue": 72
+      },
+      {
+        "key": "alphaDark",
+        "type": "integer",
+        "label": "Terminal alpha, dark themes (%)",
+        "description": "Same for dark themes.",
+        "min": 0,
+        "max": 100,
+        "step": 1,
+        "defaultValue": 62
+      },
+      {
+        "key": "milkyAlpha",
+        "type": "integer",
+        "label": "Milky look alpha (%)",
+        "description": "Terminal alpha in the milky look: frost still visible, text on a lighter ground.",
+        "min": 30,
+        "max": 95,
+        "step": 1,
+        "defaultValue": 65
+      },
+      {
+        "key": "clearAlpha",
+        "type": "integer",
+        "label": "Clear look alpha (%)",
+        "description": "Terminal alpha in the clear look: sharp wallpaper through the pane.",
+        "min": 20,
+        "max": 90,
+        "step": 1,
+        "defaultValue": 45
+      },
+      {
+        "key": "keyReadability",
+        "type": "string",
+        "label": "Key: readability",
+        "description": "Cycles glass → milky → solid for the focused window (empty = no key).",
+        "defaultValue": "SUPER + CTRL + G"
+      },
+      {
+        "key": "keyLooks",
+        "type": "string",
+        "label": "Key: looks",
+        "description": "Cycles clear → sheer → native → contrast → block for the focused window (empty = no key).",
+        "defaultValue": "SUPER + CTRL + ALT + G"
+      },
+      {
+        "key": "notify",
+        "type": "boolean",
+        "label": "Notify on change",
+        "description": "Show a notification naming the look and the window.",
+        "defaultValue": true
+      },
+      {
+        "key": "hideWhenIdle",
+        "type": "boolean",
+        "label": "Hide widget on the default look",
+        "description": "Only show the bar icon while the focused window is in a non-default look.",
+        "defaultValue": false
+      }
     ]
   },
   "homepage": "https://github.com/nocstah/omaglass",

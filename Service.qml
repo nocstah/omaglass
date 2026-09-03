@@ -99,11 +99,10 @@ Item {
       chilled: Boolean(pick("chilled", true)),
       layers: Boolean(pick("layers", true)),
       frost: Number(pick("frost", 30)),
-      shadow: Boolean(pick("shadow", true)),
+      shadows: String(pick("shadows", "contact")),
       shadowRange: Number(pick("shadowRange", 28)),
       shadowStrength: Number(pick("shadowStrength", 28)),
       shadowClip: Boolean(pick("shadowClip", true)),
-      inactiveShadowOff: Boolean(pick("inactiveShadowOff", true)),
       alphaLight: Number(pick("alphaLight", 72)),
       alphaDark: Number(pick("alphaDark", 62)),
       milkyAlpha: Number(pick("milkyAlpha", 65)),
@@ -122,8 +121,8 @@ Item {
     const b = function(v) { return v ? "true" : "false" }
     return "GLASS_OPTS = { terminals = " + b(s.terminals) + ", background = " + b(s.background)
       + ", chilled = " + b(s.chilled) + ", layers = " + b(s.layers) + ", frost = " + s.frost
-      + ", shadow = " + b(s.shadow) + ", shadow_range = " + s.shadowRange + ", shadow_strength = " + s.shadowStrength
-      + ", shadow_clip = " + b(s.shadowClip) + ", inactive_shadow_off = " + b(s.inactiveShadowOff)
+      + ", shadows = " + luaString(s.shadows) + ", shadow_range = " + s.shadowRange + ", shadow_strength = " + s.shadowStrength
+      + ", shadow_clip = " + b(s.shadowClip)
       + ", alpha_light = " + s.alphaLight + ", alpha_dark = " + s.alphaDark
       + ", milky_alpha = " + s.milkyAlpha + ", clear_alpha = " + s.clearAlpha
       + ", key_readability = " + luaString(s.keyReadability) + ", key_looks = " + luaString(s.keyLooks)
@@ -169,6 +168,7 @@ Item {
   }
 
   property bool pending: false
+  property bool reloadAfterInject: false
 
   Process {
     id: injectProc
@@ -180,6 +180,7 @@ Item {
         root.injected = true
         root.attempts = 0
         if (!root.probed) { root.probed = true; probeProc.running = true }
+        if (root.reloadAfterInject) { root.reloadAfterInject = false; Quickshell.execDetached(["hyprctl", "reload"]) }
       } else {
         root.injected = false
         root.attempts += 1
@@ -226,7 +227,13 @@ Item {
     ignoreUnknownSignals: true
     function onShellConfigChanged() {
       if (!root.enginePath) return
-      if (root.luaOpts(root.readSettings()) !== root.lastOpts) root.inject()
+      if (root.luaOpts(root.readSettings()) === root.lastOpts) return
+      // A settings change goes through a config reload rather than a bare
+      // re-inject: the theme's own values (its shadow, for one) come back
+      // first, then the loader applies the new options on top — so turning
+      // an override off really restores what the theme set.
+      root.inject()
+      root.reloadAfterInject = true
     }
   }
 

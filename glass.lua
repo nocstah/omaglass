@@ -12,9 +12,9 @@
 --     compositor-opaque so the glass shows through the terminal's OWN alpha
 --   * chilled windows (Omachill's chillmode tag) are glass too
 --   * fullscreen windows never are
---   * an unfocused window over another window gets the contact shadow;
---     Hyprland's inactive shadow is off so a lone inactive window casts
---     nothing; the focused window keeps the theme's shadow
+--   * shadows: contact (an unfocused window over another window casts a
+--     shadow only there, a lone one none, the focused window keeps the
+--     theme's), theme (Hyprland's as the theme sets them), or flat (none)
 --   * the material, unless the theme owns it (_G.glass_theme_owned): light
 --     or dark from the theme's mode, neutral colour handling, the frost as
 --     the default preset, "sheer" and "crystal" for the looks, glass on the
@@ -85,8 +85,15 @@ if opt("chilled", true) then
 end
 rule({ match = { fullscreen = true }, tag = "+hyprglass_disabled" })
 
-if opt("inactive_shadow_off", true) then
+-- Shadows: "contact" (default) — the focused window keeps the theme's
+-- shadow, an unfocused one casts the contact shadow only where it lies over
+-- another window; "theme" — Hyprland's shadows as the theme sets them, no
+-- contact shadow; "flat" — none at all.
+local SHADOWS = tostring(opt("shadows", "contact"))
+if SHADOWS == "contact" then
   hl.config({ decoration = { shadow = { color_inactive = "rgba(00000000)" } } })
+elseif SHADOWS == "flat" then
+  hl.config({ decoration = { shadow = { enabled = false } } })
 end
 
 -- ---- the material (hyprglass) ----------------------------------------------
@@ -105,7 +112,7 @@ end
 local HAVE_PLUGIN = hl.plugin and hl.plugin.hyprglass and true or false
 if HAVE_PLUGIN then
   local hg = hl.plugin.hyprglass
-  local shadow = opt("shadow", true) and (tonumber(opt("shadow_range", 28)) or 28) or 0
+  local shadow = SHADOWS == "contact" and (tonumber(opt("shadow_range", 28)) or 28) or 0
   local strength = math.max(0, math.min(100, tonumber(opt("shadow_strength", 28)) or 28))
   hg.config({
     enabled = false, -- whitelist: the rules above opt windows in
@@ -307,6 +314,7 @@ _G.omaglass = {
   version = "0.1.0",
   generation = OPTS.generation,
   have_plugin = HAVE_PLUGIN,
+  shadows = SHADOWS, -- "contact" | "theme" | "flat"; Omachill leaves shadows alone when "flat"
   look = function(selector) local w = window_from(selector) return w and look_of(w) or nil end,
   set = function(name, selector) local w = window_from(selector) if w then set_look(w, name) end end,
   cycle_readability = function(selector) return cycle(READ_CYCLE, selector) end,
