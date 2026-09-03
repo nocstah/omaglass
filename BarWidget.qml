@@ -1,6 +1,6 @@
-// Omaglass — bar widget. Shows the focused window's glass look; click cycles
-// the looks, right-click cycles readability. Lights up (theme blue) while the
-// focused window is in a non-default look.
+// Omaglass — bar widget. Shows the focused window's glass look and opens the
+// dropdown (Panel.qml) on click; middle-click cycles the looks directly.
+// Lights up (theme blue) while the focused window is in a non-default look.
 //
 // State comes from the engine: `custom>>omaglass <address> <look>` events on
 // the Hyprland socket trigger a refresh, and the refresh reads the focused
@@ -51,6 +51,7 @@ BarWidget {
   // Focused window: its look ("glass" = default, "" = not a glass window).
   property string look: ""
   property string title: ""
+  property string defaultLook: "glass"
   readonly property bool glassWindow: look !== ""
   readonly property bool active: glassWindow && look !== "glass"
   readonly property bool shown: active || !hideWhenIdle
@@ -66,6 +67,31 @@ BarWidget {
 
   function cycle(readability) {
     root.bar.run("hyprctl eval " + Util.shellQuote(readability ? "omaglass.cycle_readability()" : "omaglass.cycle_looks()"))
+  }
+
+  // The dropdown, a shell Panel loaded beside the widget (weather's pattern).
+  function injectPanel() {
+    var target = panelLoader.item
+    if (!target) return
+    if ("bar" in target) target.bar = root.bar
+    if ("settings" in target) target.settings = root.settings
+    if ("anchorItem" in target) target.anchorItem = button
+    if ("hostWidget" in target) target.hostWidget = root
+  }
+  readonly property bool opened: panelLoader.item ? panelLoader.item.opened === true : false
+  function open() { if (panelLoader.item) panelLoader.item.open() }
+  function close() { if (panelLoader.item) panelLoader.item.close() }
+  function togglePanel() { if (panelLoader.item) panelLoader.item.toggle() }
+  readonly property bool popoutSwitchClosing: panelLoader.item ? panelLoader.item.popoutSwitchClosing === true : false
+  function closeForPopoutSwitch() { if (panelLoader.item) panelLoader.item.closeForPopoutSwitch() }
+  onBarChanged: injectPanel()
+  onSettingsChanged: injectPanel()
+  Loader {
+    id: panelLoader
+    active: true
+    source: Qt.resolvedUrl("Panel.qml")
+    visible: false
+    onLoaded: { root.injectPanel(); Qt.callLater(root.injectPanel) }
   }
 
   Process {
@@ -96,8 +122,20 @@ BarWidget {
         }
         root.look = look
         root.title = title
+        defaultFile.reload()
       }
     }
+  }
+
+  // The default for new windows, kept by the engine.
+  FileView {
+    id: defaultFile
+    path: Quickshell.env("HOME") + "/.local/state/omaglass/default-look"
+    watchChanges: true
+    printErrors: false
+    onFileChanged: reload()
+    onLoaded: root.defaultLook = String(text() || "glass").trim() || "glass"
+    onLoadFailed: root.defaultLook = "glass"
   }
 
   Connections {
@@ -123,8 +161,11 @@ BarWidget {
     active: root.active
     activeColor: root.themeBlue
     tooltipText: root.glassWindow
-      ? "Glass: " + root.look + " — " + root.title + "\nclick: next look · right-click: readability"
+      ? "Glass: " + root.look + " — " + root.title + "\nclick: choose a look · middle-click: next look"
       : (root.title ? root.title + " is not a glass window" : "No focused window")
-    onPressed: function(b) { root.cycle(b === Qt.RightButton) }
+    onPressed: function(b) {
+      if (b === Qt.MiddleButton) root.cycle(false)
+      else root.togglePanel()
+    }
   }
 }

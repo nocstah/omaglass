@@ -43,7 +43,11 @@ the plugin removes the loader again.
   is switched off; the focused window keeps the theme's shadow.
 - **Chilled windows** (Omachill) are glass too; fullscreen windows never are.
 - **The bar and menus** get the same frost.
-- **Looks per window**, on two keys and on the bar widget:
+- **Looks per window, or for all**: click the bar widget for a dropdown that
+  lists every look with a one-line description and marks the current one.
+  "Window" applies to the focused window; "All" applies to every glass window
+  and makes it the default for windows opened from then on. The same looks
+  are on two keys:
 
   | key | cycle |
   | --- | --- |
@@ -70,6 +74,7 @@ and the plugin leaves the material to it, applying only the rules.
 hyprctl eval 'omaglass.cycle_looks()'            # focused window
 hyprctl eval 'omaglass.set("clear", "0x...")'    # a window by address
 hyprctl eval 'omaglass.look()'                   # current look
+hyprctl eval 'omaglass.set_all("sheer")'         # every glass window, and the default for new ones
 ```
 
 Every change emits `custom>>omaglass <address> <look>` on the event socket.

@@ -44,11 +44,28 @@ local KEY_LOOKS  = opt("key_looks", "SUPER + CTRL + ALT + G")
 
 local function q(s) return "'" .. tostring(s):gsub("'", "'\\''") .. "'" end
 
+-- The default look for windows opened from now on ("All windows" in the
+-- dropdown). Kept in a file so it survives reloads; the bar reads it too.
+local STATE_DIR    = os.getenv("HOME") .. "/.local/state/omaglass"
+local DEFAULT_FILE = STATE_DIR .. "/default-look"
+local function read_default()
+  local f = io.open(DEFAULT_FILE)
+  if not f then return "glass" end
+  local v = (f:read("*l") or ""):gsub("%s+", "")
+  f:close()
+  return v ~= "" and v or "glass"
+end
+local function write_default(name)
+  os.execute("mkdir -p " .. q(STATE_DIR))
+  local f = io.open(DEFAULT_FILE, "w")
+  if f then f:write(name, "\n") f:close() end
+end
+
 -- Re-entrant: tear down the previous registration first.
 if type(_G.omaglass) == "table" and type(_G.omaglass.unload) == "function" then
   pcall(_G.omaglass.unload)
 end
-local live = { rules = {}, keys = {} }
+local live = { rules = {}, keys = {}, subs = {} }
 local function rule(spec) live.rules[#live.rules + 1] = hl.window_rule(spec) end
 
 -- ---- rules: plain Hyprland ---------------------------------------------------
@@ -184,7 +201,7 @@ local function notify(text)
   hl.exec_cmd("notify-send -e -t 1200 'Glass' " .. q(text))
 end
 
-local function set_look(w, name)
+local function set_look(w, name, quiet)
   local state = look_of(w)
   local prev, next = LOOK[state] or LOOK.glass, LOOK[name] or LOOK.glass
   if state ~= "glass" then tag(w, "-glass_" .. state) end
@@ -206,7 +223,7 @@ local function set_look(w, name)
   if next.bg then tag(w, "+hyprglass_background") end
   foot_alpha(w, next.alpha)
   if name ~= "glass" then tag(w, "+glass_" .. name) end
-  notify(name .. " — " .. tostring(w.title or w.class or ""):sub(1, 40))
+  if not quiet then notify(name .. " — " .. tostring(w.title or w.class or ""):sub(1, 40)) end
   pcall(function() hl.dispatch(hl.dsp.event("omaglass " .. tostring(w.address) .. " " .. name)) end)
 end
 
@@ -227,6 +244,48 @@ local function cycle(list, selector)
   return nxt
 end
 
+-- A glass window: tagged by the rules above (or by a look), or a terminal
+-- by class — the rule tags can lag a freshly mapped window by a frame.
+local function is_glass(w)
+  if not w or not w.mapped then return false end
+  local t = tags_of(w)
+  for i = 1, #t do
+    local n = tostring(t[i]):gsub("%*$", "")
+    if n == "hyprglass_enabled" or n:match("^glass_") then return true end
+  end
+  return type(w.class) == "string" and w.class:match(TERMINALS) ~= nil
+end
+
+local function set_all(name)
+  name = LOOK[name] and name or "glass"
+  local wins = hl.get_windows()
+  local n = 0
+  if type(wins) == "table" then
+    for i = 1, #wins do
+      if is_glass(wins[i]) then
+        pcall(set_look, wins[i], name, true)
+        n = n + 1
+      end
+    end
+  end
+  write_default(name)
+  notify(string.format("%s — all windows (%d), and new ones", name, n))
+  pcall(function() hl.dispatch(hl.dsp.event("omaglass all " .. name)) end)
+  return n
+end
+
+-- New glass windows start in the default look. A short delay lets the
+-- map-time rules land first (is_glass needs the tags or the class).
+live.subs[#live.subs + 1] = hl.on("window.open", function(w)
+  local d = read_default()
+  if d == "glass" or not w then return end
+  local address = w.address
+  hl.timer(function()
+    local ww = hl.get_window("address:" .. address)
+    if ww and is_glass(ww) and look_of(ww) == "glass" then pcall(set_look, ww, d, true) end
+  end, { timeout = 150, type = "oneshot" })
+end)
+
 if KEY_READ ~= "" then
   o.bind(KEY_READ, "Glass: readability (window)", function() cycle(READ_CYCLE) end)
   live.keys[#live.keys + 1] = KEY_READ
@@ -239,7 +298,8 @@ end
 local function unload()
   for i = 1, #live.rules do pcall(function() live.rules[i]:set_enabled(false) end) end
   for i = 1, #live.keys do pcall(hl.unbind, live.keys[i]) end
-  live = { rules = {}, keys = {} }
+  for i = 1, #live.subs do pcall(function() live.subs[i]:remove() end) end
+  live = { rules = {}, keys = {}, subs = {} }
   _G.omaglass = nil
 end
 
@@ -251,5 +311,7 @@ _G.omaglass = {
   set = function(name, selector) local w = window_from(selector) if w then set_look(w, name) end end,
   cycle_readability = function(selector) return cycle(READ_CYCLE, selector) end,
   cycle_looks = function(selector) return cycle(LOOK_CYCLE, selector) end,
+  set_all = set_all,
+  default = read_default,
   unload = unload,
 }
