@@ -70,13 +70,12 @@ the plugin removes the loader again.
   built-in presets.
 
 Every option — which windows, the frost, the shadows, the alphas, the keys — is
-a widget setting stored in `~/.config/omarchy/shell.json`. The shadows mode
-is switchable from the dropdown; Omarchy has no editor for the others yet, so
-they are set from the command line, for example:
+a widget setting stored in `~/.config/omarchy/shell.json`. All of them are in
+the dropdown: click the bar icon, then the cog (tabs Glass / Shadows / Alpha /
+Widget); a change applies on the spot. The same keys work from the command
+line, for example:
 
 ```bash
-# Every setting is also in the dropdown: click the bar icon, then "Settings ›"
-# (tabs Glass / Shadows / Alpha / Widget; a change applies on the spot).
 omarchy bar set io.github.nocstah.omaglass shadows flat      # contact | theme | flat
 omarchy bar set io.github.nocstah.omaglass frost 12          # lighter default frost
 omarchy bar set io.github.nocstah.omaglass alphaLight 60     # terminal alpha on light themes
@@ -84,7 +83,21 @@ omarchy bar set io.github.nocstah.omaglass background false  # sample the live f
 omarchy bar set io.github.nocstah.omaglass nativeBlur false  # leave Hyprland's own blur to your looknfeel
 ```
 
-The keys are the ones in `manifest.json`.
+| key | default | what |
+| --- | --- | --- |
+| `terminals` | `true` | foot, ghostty, alacritty and kitty windows are glass |
+| `background` | `true` | glass samples the wallpaper only (hyprglass x-ray) |
+| `chilled` | `true` | windows chilled by Omachill are glass |
+| `layers` | `true` | the bar, menus, OSD and notifications get the frost |
+| `nativeBlur` | `true` | tune Hyprland's own blur to sit with the frost |
+| `frost` | `30` | blur strength of the default glass |
+| `shadows` | `contact` | `contact`, `theme` or `flat` |
+| `shadowRange`, `shadowStrength`, `shadowClip` | `28`, `28`, `true` | the contact shadow's reach, opacity, and whether it is cut at the underlying window |
+| `alphaLight`, `alphaDark` | `72`, `62` | the terminal's own background alpha per theme mode |
+| `milkyAlpha`, `clearAlpha` | `65`, `45` | the milky and clear looks' terminal alpha |
+| `keyReadability`, `keyLooks` | `SUPER + CTRL + G`, `SUPER + CTRL + ALT + G` | the two cycle keys |
+| `notify` | `true` | a toast when a look changes |
+| `hideWhenIdle` | `false` | show the widget only while a look other than glass is active |
 
 ## Themes
 
