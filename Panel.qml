@@ -159,14 +159,14 @@ Panel {
             focusable: false
             onChanged: function(v) { root.scope = v === "All" ? "all" : "window" }
           }
-          Button {
+          PanelActionButton {
             id: backButton
             visible: root.page === "settings"
             anchors.right: parent.right
             anchors.verticalCenter: parent.verticalCenter
-            text: "‹ Looks"
+            iconText: "󰅁"
+            tooltipText: "Back to looks"
             foreground: root.panelForeground
-            focusable: false
             onClicked: root.page = "looks"
           }
         }
@@ -292,21 +292,12 @@ Panel {
           Item {
             width: parent.width
             height: settingsButton.height
-            Text {
-              anchors.left: parent.left
-              anchors.verticalCenter: parent.verticalCenter
-              text: "Frost, which windows, alphas, keys…"
-              color: Color.popups.text
-              opacity: 0.45
-              font.family: Style.font.family
-              font.pixelSize: Style.font.caption
-            }
-            Button {
+            PanelActionButton {
               id: settingsButton
               anchors.right: parent.right
-              text: "Settings ›"
+              iconText: "󰒓"
+              tooltipText: "Settings"
               foreground: root.panelForeground
-              focusable: false
               onClicked: root.page = "settings"
             }
           }
