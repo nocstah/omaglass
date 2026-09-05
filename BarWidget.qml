@@ -18,7 +18,7 @@ BarWidget {
   id: root
   moduleName: "io.github.nocstah.omaglass"
 
-  readonly property bool hideWhenIdle: setting("hideWhenIdle", false) === true
+  readonly property bool hideWhenIdle: String(setting("hideWhenIdle", false)).toLowerCase() === "true"
 
   // The theme's blue, read from the active theme's colors.toml (fallbacks:
   // `blue`, ANSI `color4`, the accent, a fixed blue). Same as Omachill.

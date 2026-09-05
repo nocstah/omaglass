@@ -89,28 +89,41 @@ Item {
     return null
   }
 
+  // shell.json holds what `omarchy bar set` was given: a bare `true`/`45`
+  // arrives as the string "true"/"45" (only `--json` stores typed values),
+  // and Boolean("false") is true. Read both shapes.
+  function asBool(v, fb) {
+    if (v === undefined || v === null) return fb
+    if (typeof v === "boolean") return v
+    const t = String(v).trim().toLowerCase()
+    if (t === "true" || t === "1" || t === "on" || t === "yes") return true
+    if (t === "false" || t === "0" || t === "off" || t === "no" || t === "") return false
+    return fb
+  }
+  function asNum(v, fb) { const n = Number(v); return isFinite(n) ? n : fb }
+
   function readSettings() {
     const d = manifest && manifest.barWidget && manifest.barWidget.defaults ? manifest.barWidget.defaults : {}
     const e = entryFor(shell ? shell.shellConfig : null) || {}
     function pick(k, fb) { return e[k] !== undefined && e[k] !== null ? e[k] : (d[k] !== undefined ? d[k] : fb) }
     return {
-      terminals: Boolean(pick("terminals", true)),
-      background: Boolean(pick("background", true)),
-      chilled: Boolean(pick("chilled", true)),
-      layers: Boolean(pick("layers", true)),
-      nativeBlur: Boolean(pick("nativeBlur", true)),
-      frost: Number(pick("frost", 30)),
+      terminals: asBool(pick("terminals", true), true),
+      background: asBool(pick("background", true), true),
+      chilled: asBool(pick("chilled", true), true),
+      layers: asBool(pick("layers", true), true),
+      nativeBlur: asBool(pick("nativeBlur", true), true),
+      frost: asNum(pick("frost", 30), 30),
       shadows: String(pick("shadows", "contact")),
-      shadowRange: Number(pick("shadowRange", 28)),
-      shadowStrength: Number(pick("shadowStrength", 28)),
-      shadowClip: Boolean(pick("shadowClip", true)),
-      alphaLight: Number(pick("alphaLight", 72)),
-      alphaDark: Number(pick("alphaDark", 62)),
-      milkyAlpha: Number(pick("milkyAlpha", 65)),
-      clearAlpha: Number(pick("clearAlpha", 45)),
+      shadowRange: asNum(pick("shadowRange", 28), 28),
+      shadowStrength: asNum(pick("shadowStrength", 28), 28),
+      shadowClip: asBool(pick("shadowClip", true), true),
+      alphaLight: asNum(pick("alphaLight", 72), 72),
+      alphaDark: asNum(pick("alphaDark", 62), 62),
+      milkyAlpha: asNum(pick("milkyAlpha", 65), 65),
+      clearAlpha: asNum(pick("clearAlpha", 45), 45),
       keyReadability: String(pick("keyReadability", "SUPER + CTRL + G")),
       keyLooks: String(pick("keyLooks", "SUPER + CTRL + ALT + G")),
-      notify: Boolean(pick("notify", true)),
+      notify: asBool(pick("notify", true), true),
     }
   }
 

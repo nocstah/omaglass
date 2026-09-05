@@ -61,9 +61,12 @@ Panel {
     return root.defaults ? root.defaults[key] : undefined
   }
   readonly property string shadowsMode: String(root.value("shadows") || "contact")
+  // Booleans and numbers go typed (`--json`); a bare value is stored as a
+  // string, and the service would read "false" as true.
   function setOption(key, v) {
     if (!root.bar) return
-    root.bar.run("omarchy bar set io.github.nocstah.omaglass " + key + " " + Util.shellQuote(String(v)))
+    const typed = typeof v === "boolean" || typeof v === "number"
+    root.bar.run("omarchy bar set io.github.nocstah.omaglass " + key + " " + Util.shellQuote(typed ? JSON.stringify(v) : String(v)) + (typed ? " --json" : ""))
   }
   readonly property color panelForeground: root.bar ? root.bar.foreground : Color.popups.text
 
