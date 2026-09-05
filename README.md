@@ -23,6 +23,18 @@ omarchy plugin add https://github.com/nocstah/omaglass --enable
 Without hyprglass the plugin still applies its window rules; there is just no
 glass, and the bar tells you once.
 
+To remove it:
+
+```bash
+omarchy plugin remove io.github.nocstah.omaglass
+hyprpm remove hyprglass   # optional: the compositor plugin itself
+```
+
+That deletes the loader; the marked include line left in `hyprland.lua` is
+inert and safe to delete, the per-theme look memory lives under
+`~/.local/state/omaglass/`, and foot's `alpha` lines keep the last value the
+plugin wrote, so set them to taste afterwards.
+
 On enable the plugin writes a small loader, `~/.config/hypr/omaglass.lua`,
 and appends one guarded, marked line to `~/.config/hypr/hyprland.lua` that
 runs it. Hyprland rebuilds its Lua state from the config on every reload, so
