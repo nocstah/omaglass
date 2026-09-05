@@ -35,6 +35,10 @@ the plugin removes the loader again.
   frost, held compositor-opaque so the glass shows through the terminal's own
   background alpha. The plugin sets that alpha (per light/dark theme) in
   foot's config and repaints open windows; a theme shipping its own alpha wins.
+- **Hyprland's own blur, tuned to match**: popups, the pads and translucent
+  windows that are not glass still use Hyprland's blur; the plugin sets it to
+  sit with the frost (size 8, two passes, xray, blur behind special
+  workspaces). Themes that ship their own blur keep it.
 - **Wallpaper only** (hyprglass x-ray): the glass is sampled from a snapshot of the desktop
   taken before any window is drawn, so windows underneath never show through.
 - **Shadows**, three modes. *Contact* (default): one soft shadow system on
@@ -75,6 +79,7 @@ omarchy bar set io.github.nocstah.omaglass shadows flat      # contact | theme |
 omarchy bar set io.github.nocstah.omaglass frost 12          # lighter default frost
 omarchy bar set io.github.nocstah.omaglass alphaLight 60     # terminal alpha on light themes
 omarchy bar set io.github.nocstah.omaglass background false  # sample the live frame again
+omarchy bar set io.github.nocstah.omaglass nativeBlur false  # leave Hyprland's own blur to your looknfeel
 ```
 
 The keys are the ones in `manifest.json`.

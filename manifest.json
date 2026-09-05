@@ -25,6 +25,7 @@
       "background": true,
       "chilled": true,
       "layers": true,
+      "nativeBlur": true,
       "frost": 30,
       "shadowRange": 28,
       "shadowStrength": 28,
@@ -66,6 +67,13 @@
         "type": "boolean",
         "label": "Glass on the bar and menus",
         "description": "The shell's bar, menus, OSD and notifications get the frost.",
+        "defaultValue": true
+      },
+      {
+        "key": "nativeBlur",
+        "type": "boolean",
+        "label": "Tune Hyprland's own blur",
+        "description": "Hyprland's native blur, behind popups, the pads and translucent windows that are not glass, tuned to sit with the frost: size 8, two passes, xray, blur behind special workspaces. Off leaves your own blur settings alone. A theme that ships its own blur keeps it either way.",
         "defaultValue": true
       },
       {

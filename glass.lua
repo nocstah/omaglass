@@ -146,6 +146,25 @@ local function theme_mode() -- "light" | "dark" from the current theme's colors.
   return mode
 end
 
+-- ---- Hyprland's own blur ------------------------------------------------------
+-- Everything that is not a glass pane still goes through Hyprland's blur:
+-- popups, the special workspaces (pads, scratchpad) and the translucent
+-- windows that are not glass (Omarchy's default-opacity rule leaves most
+-- windows a few percent see-through). Tuned to sit with the frost. `special`
+-- is what frosts the backdrop behind a pad; Hyprland never blurs there
+-- without it. ignore_opacity = false weights the blur by the window's own
+-- alpha, so a 96 % window shows a hint of what is beneath rather than a full
+-- frost. Two passes with xray instead of three: near-identical, measurably
+-- less GPU on dual 4K. A theme that ships its own blur (glass_theme_owned)
+-- keeps it.
+if opt("native_blur", true) and not _G.glass_theme_owned then
+  hl.config({ decoration = { blur = {
+    enabled = true, special = true, size = 8, passes = 2, xray = true, new_optimizations = true,
+    ignore_opacity = false, vibrancy = 0.24, vibrancy_darkness = 0.15, noise = 0.015,
+    contrast = 1.05, brightness = 1.0, popups = true, popups_ignorealpha = 0.4,
+  } } })
+end
+
 local HAVE_PLUGIN = hl.plugin and hl.plugin.hyprglass and true or false
 if HAVE_PLUGIN then
   local hg = hl.plugin.hyprglass

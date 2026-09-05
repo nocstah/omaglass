@@ -98,6 +98,7 @@ Item {
       background: Boolean(pick("background", true)),
       chilled: Boolean(pick("chilled", true)),
       layers: Boolean(pick("layers", true)),
+      nativeBlur: Boolean(pick("nativeBlur", true)),
       frost: Number(pick("frost", 30)),
       shadows: String(pick("shadows", "contact")),
       shadowRange: Number(pick("shadowRange", 28)),
@@ -120,7 +121,7 @@ Item {
   function luaOpts(s) {
     const b = function(v) { return v ? "true" : "false" }
     return "GLASS_OPTS = { terminals = " + b(s.terminals) + ", background = " + b(s.background)
-      + ", chilled = " + b(s.chilled) + ", layers = " + b(s.layers) + ", frost = " + s.frost
+      + ", chilled = " + b(s.chilled) + ", layers = " + b(s.layers) + ", native_blur = " + b(s.nativeBlur) + ", frost = " + s.frost
       + ", shadows = " + luaString(s.shadows) + ", shadow_range = " + s.shadowRange + ", shadow_strength = " + s.shadowStrength
       + ", shadow_clip = " + b(s.shadowClip)
       + ", alpha_light = " + s.alphaLight + ", alpha_dark = " + s.alphaDark
