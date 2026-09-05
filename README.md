@@ -75,6 +75,8 @@ is switchable from the dropdown; Omarchy has no editor for the others yet, so
 they are set from the command line, for example:
 
 ```bash
+# Every setting is also in the dropdown: click the bar icon, then "Settings ›"
+# (tabs Glass / Shadows / Alpha / Widget; a change applies on the spot).
 omarchy bar set io.github.nocstah.omaglass shadows flat      # contact | theme | flat
 omarchy bar set io.github.nocstah.omaglass frost 12          # lighter default frost
 omarchy bar set io.github.nocstah.omaglass alphaLight 60     # terminal alpha on light themes
