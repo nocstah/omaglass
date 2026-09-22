@@ -59,7 +59,17 @@ case ${1:-} in
     [[ -n $pct ]] || exit 0
     pct=$(awk -v a="$pct" 'BEGIN{printf "%d", a*100}')
     bg=$(theme_bg "$mode")
-    for pid in $(pgrep -x foot); do pty_write "$pid" "$(printf '\033]11;[%d]#%s\007' "$pct" "$bg")"; done
+    # Every foot window except Omarchy's org.omarchy.* TUI popups: those are
+    # drawn opaque on purpose (foot-popup-opaque), and retinting them here on
+    # every reload turned them into the premultiplied dark slab (2026-09-08).
+    # Foot under other app-ids (the pad-* scratch pads) is a terminal and
+    # gets the glass alpha like a plain foot. A window in a per-window look
+    # (glass_<look> tag) keeps that look's alpha: a plain reload leaves
+    # per-window choices alone, and the engine re-applies looks itself on a
+    # theme change.
+    pids=$(hyprctl clients -j 2>/dev/null | jq -r '.[] | select((.class | startswith("org.omarchy.") | not) and ((.tags // []) | any(startswith("glass_")) | not)) | .pid')
+    [[ -n $pids ]] && pids=$(comm -12 <(pgrep -x foot | sort) <(tr ' ' '\n' <<<"$pids" | sort)) || pids=$(pgrep -x foot)
+    for pid in $pids; do pty_write "$pid" "$(printf '\033]11;[%d]#%s\007' "$pct" "$bg")"; done
     ;;
   *)
     echo "usage: glass-foot alpha <pid> <percent|reset> | apply <light%> <dark%>" >&2; exit 2 ;;
