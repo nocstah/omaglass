@@ -33,7 +33,9 @@ local function opt(key, default)
   return v
 end
 
-local TERMINALS  = opt("terminal_classes", "^(foot|com\\.mitchellh\\.ghostty|Alacritty|kitty)$")
+-- pad-.*: scratch pads (a terminal under its own app-id so a rule can park it
+-- in a special workspace) are terminals too.
+local TERMINALS  = opt("terminal_classes", "^(foot|com\\.mitchellh\\.ghostty|Alacritty|kitty|pad-.*)$")
 local HELPER     = tostring(opt("helper", "")) -- bin/glass-foot, absolute path
 local NOTIFY     = opt("notify", true) ~= false
 local MILKY      = tonumber(opt("milky_alpha", 65)) or 65
@@ -187,7 +189,13 @@ if HAVE_PLUGIN then
     -- tint laid over it, so a dark translucent terminal reads as glass
     -- instead of a muddy grey over a bright wallpaper.
     local light = { brightness = 1.0, contrast = 1.0, saturation = 1.0, vibrancy = 0.0, adaptive_boost = 0.05, adaptive_dim = 0.05 }
-    local dark  = { brightness = 0.88, contrast = 1.0, saturation = 0.9, vibrancy = 0.05, adaptive_boost = 0.0, adaptive_dim = 0.18, tint_color = 0x00000038 }
+    -- 2026-09-08: strengthened so bright wallpaper regions do not read as milky
+    -- through the glass on a dark theme (Gilded Noir + the high-contrast
+    -- "Death of Socrates" wallpaper — dark at top, bright figures below made
+    -- panes dark up top and milky over the paint). More black tint, lower
+    -- brightness, and adaptive_dim carrying the load so bright areas are pulled
+    -- down toward the dark ones rather than every pane just going darker.
+    local dark  = { brightness = 0.78, contrast = 1.05, saturation = 0.85, vibrancy = 0.05, adaptive_boost = 0.0, adaptive_dim = 0.45, tint_color = 0x00000077 }
     local function preset(name, blur_strength, blur_iterations)
       hg.preset(name, {
         glass_opacity = 1.0, blur_strength = blur_strength, blur_iterations = blur_iterations,
@@ -276,8 +284,18 @@ local function look_of(w)
 end
 local function tag(w, t) hl.dispatch(hl.dsp.window.tag({ tag = t, window = "address:" .. w.address })) end
 local function prop(w, p, v) hl.dispatch(hl.dsp.window.set_prop({ prop = p, value = v, window = "address:" .. w.address })) end
+-- foot under any app-id (the pads) takes the OSC 11 retint; other terminals
+-- don't. The process name says which, the class can't.
+local function runs_foot(w)
+  if not w or not w.pid or w.pid <= 0 then return false end
+  local f = io.open("/proc/" .. tostring(w.pid) .. "/comm")
+  if not f then return false end
+  local comm = (f:read("*l") or ""):gsub("%s+$", "")
+  f:close()
+  return comm == "foot"
+end
 local function foot_alpha(w, value)
-  if HELPER == "" or w.class ~= "foot" then return end
+  if HELPER == "" or not runs_foot(w) then return end
   hl.exec_cmd(q(HELPER) .. " alpha " .. tostring(w.pid) .. " " .. tostring(value))
 end
 local function notify(text)
@@ -436,7 +454,7 @@ _G.omaglass = {
   have_plugin = HAVE_PLUGIN,
   shadows = SHADOWS, -- "contact" | "theme" | "flat"; Omachill leaves shadows alone when "flat"
   look = function(selector) local w = window_from(selector) return w and look_of(w) or nil end,
-  set = function(name, selector) local w = window_from(selector) if w then set_look(w, name) end end,
+  set = function(name, selector, quiet) local w = window_from(selector) if w then set_look(w, name, quiet) end end,
   cycle_readability = function(selector) return cycle(READ_CYCLE, selector) end,
   cycle_looks = function(selector) return cycle(LOOK_CYCLE, selector) end,
   set_all = set_all,
