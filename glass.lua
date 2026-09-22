@@ -161,7 +161,12 @@ end
 -- keeps it.
 if opt("native_blur", true) and not _G.glass_theme_owned then
   hl.config({ decoration = { blur = {
-    enabled = true, special = true, size = 8, passes = 2, xray = true, new_optimizations = true,
+    -- size 16 / passes 2, not 8: Hyprland's live-blur damage margin is
+    -- 1.5 * size * 2^passes, and that margin is the only thing keeping the
+    -- texels the glass shader reads inside finalDamage. The "clear" preset
+    -- (frost 30, 5 iterations) reads up to 80px past a window's edge; size 8
+    -- gave 48px, so edges went stale under motion. 16 gives 96px.
+    enabled = true, special = true, size = 16, passes = 2, xray = true, new_optimizations = true,
     ignore_opacity = false, vibrancy = 0.24, vibrancy_darkness = 0.15, noise = 0.015,
     contrast = 1.05, brightness = 1.0, popups = true, popups_ignorealpha = 0.4,
   } } })
@@ -180,13 +185,12 @@ if HAVE_PLUGIN then
       color = math.floor(strength * 255 / 100 + 0.5), -- 0x000000AA
       clip = opt("shadow_clip", true) and 1 or 0,
     },
-    -- v0.9.0 added an edge-shading layer whose globals default to ON
-    -- (refraction 0.6, chromatic aberration 0.5, fresnel 0.6, specular 0.8,
-    -- lens distortion 0.5, edge thickness 0.06). A preset that does not name
-    -- them inherits them, so every look below got the same heavy shading on
-    -- top and they all collapsed into one grey, see-through wash. Off here:
-    -- the looks are carried by blur, tint and the adaptive pair, as before.
-    -- Raise any of these per preset if a look should have a glass edge.
+    -- v0.9.0's edge-shading settings default to on globally (refraction 0.6,
+    -- chromatic aberration 0.5, fresnel 0.6, specular 0.8, lens distortion
+    -- 0.5, edge thickness 0.06). Every preset below already zeroes them, so
+    -- this only covers a glassed window that carries no preset tag — and it
+    -- keeps the global blur-margin check honest, since that check reads these
+    -- global values. Raise any of them per preset for a glass edge.
     refraction_strength  = 0.0,
     chromatic_aberration = 0.0,
     fresnel_strength     = 0.0,
