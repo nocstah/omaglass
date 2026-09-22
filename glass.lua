@@ -180,6 +180,19 @@ if HAVE_PLUGIN then
       color = math.floor(strength * 255 / 100 + 0.5), -- 0x000000AA
       clip = opt("shadow_clip", true) and 1 or 0,
     },
+    -- v0.9.0 added an edge-shading layer whose globals default to ON
+    -- (refraction 0.6, chromatic aberration 0.5, fresnel 0.6, specular 0.8,
+    -- lens distortion 0.5, edge thickness 0.06). A preset that does not name
+    -- them inherits them, so every look below got the same heavy shading on
+    -- top and they all collapsed into one grey, see-through wash. Off here:
+    -- the looks are carried by blur, tint and the adaptive pair, as before.
+    -- Raise any of these per preset if a look should have a glass edge.
+    refraction_strength  = 0.0,
+    chromatic_aberration = 0.0,
+    fresnel_strength     = 0.0,
+    specular_strength    = 0.0,
+    lens_distortion      = 0.0,
+    edge_thickness       = 0.0,
   })
 
   if not _G.glass_theme_owned then
