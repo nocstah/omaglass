@@ -111,6 +111,9 @@ end
 -- stops matching, removes "<effect>*" — so "+hyprglass_disabled" looks for
 -- "+hyprglass_disabled*", never finds it, and the tag outlives fullscreen,
 -- leaving the window without glass. A bare tag is removed as it should be.
+-- Reported upstream: https://github.com/hyprwm/Hyprland/discussions/16423
+-- Only here: a bare tag toggles, and the rules above can both match one
+-- window, so theirs keep the "+" (their matches rarely change anyway).
 rule({ match = { fullscreen = true }, tag = "hyprglass_disabled" })
 
 -- Shadows: "contact" (default) — the focused window keeps the theme's
