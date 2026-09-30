@@ -107,7 +107,11 @@ if opt("chilled", true) then
   rule({ match = { tag = "chillmode" }, tag = "+hyprglass_enabled" })
   if background then rule({ match = { tag = "chillmode" }, tag = "+hyprglass_xray" }) end
 end
-rule({ match = { fullscreen = true }, tag = "+hyprglass_disabled" })
+-- No "+": Hyprland records a rule's tag effect verbatim and, when the rule
+-- stops matching, removes "<effect>*" — so "+hyprglass_disabled" looks for
+-- "+hyprglass_disabled*", never finds it, and the tag outlives fullscreen,
+-- leaving the window without glass. A bare tag is removed as it should be.
+rule({ match = { fullscreen = true }, tag = "hyprglass_disabled" })
 
 -- Shadows: "contact" (default) — the focused window keeps the theme's
 -- shadow, an unfocused one casts the contact shadow only where it lies over
